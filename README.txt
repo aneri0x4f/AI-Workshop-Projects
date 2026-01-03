@@ -15,11 +15,6 @@ IF USING GROQ:
 Get Groq API Key from: https://console.groq.com/keys
 Base URL for Groq: "https://api.groq.com/openai/v1/chat/completions"
 
-IF USING PAYPAL:
-Get API from PayPal Cosmos: https://console-preprod.es.paypalcorp.com/console/ext/cosmosai-model-platform/ai/cloud
-Documentation, Unified LLM Developer API: https://github.paypal.com/pages/edp-aiml/ihub-docs/ai/GenAI/Unified_LLM_Developer_API/
-Base URL for PayPal Cosmos: "https://aiplatform.dev51.cbf.dev.paypalinc.com/cosmosai/llm/v1/chat/completions"
-
 ========================================================================================
 STEP 2: SETUP INSTRUCTIONS
 ========================================================================================
