@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Clone Chat</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 1; }
+        }
+        
+        .message-animate {
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        .typing-indicator span {
+            animation: pulse-dot 1.4s infinite;
+        }
+        
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        
+        .gradient-border {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 2px;
+            border-radius: 1rem;
+        }
+        
+        .gradient-border-inner {
+            background: white;
+            border-radius: calc(1rem - 2px);
+        }
+        
+        /* Custom scrollbar */
+        #chat-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        #chat-messages::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        #chat-messages::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+        
+        #chat-messages::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-50 via-purple-50 to-blue-50 min-h-screen">
+    
+    <div class="max-w-5xl mx-auto p-4 md:p-8">
+        
+        <!-- Header -->
+        <header class="mb-8">
+            <div class="bg-white/80 backdrop-blur-lg rounded-3xl shadow-2xl p-8 border border-white/20">
+                <div class="flex flex-col md:flex-row items-center md:items-start gap-6">
+                    <!-- Avatar -->
+                    <div class="relative group">
+                        <div class="absolute -inset-1 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full opacity-75 group-hover:opacity-100 blur transition duration-200"></div>
+                        <img id="avatar" 
+                             src="./imgs/adv_avatar.jpg" 
+                             alt="AI Clone Avatar" 
+                             class="relative w-28 h-28 rounded-full object-cover ring-4 ring-white shadow-lg">
+                        <div class="absolute bottom-2 right-2 w-5 h-5 bg-green-500 rounded-full border-4 border-white"></div>
+                    </div>
+                    
+                    <!-- Title Section -->
+                    <div class="flex-1 text-center md:text-left">
+                        <h1 class="text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-2">
+                            Aneri's AI Clone
+                        </h1>
+                        <p class="text-gray-600 text-lg">Customize and chat with your AI assistant</p>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Personality Selector -->
+        <section class="bg-white/80 backdrop-blur-lg rounded-3xl shadow-2xl p-6 mb-6 border border-white/20">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl flex items-center justify-center">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h2 class="text-xl font-bold text-gray-800">Personality Settings</h2>
+                    <p class="text-sm text-gray-500">Choose how your AI clone responds</p>
+                </div>
+            </div>
+
+            <!-- Personality Presets -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+                <button onclick="selectPersonality('professional')" 
+                        class="personality-btn p-4 border-2 border-gray-200 rounded-xl hover:border-purple-500 transition-all duration-200 text-left group"
+                        data-personality="professional">
+                    <div class="flex items-start gap-3">
+                        <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-blue-200 transition-colors">
+                            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-gray-800 mb-1">Professional</h3>
+                            <p class="text-xs text-gray-500">Friendly, helpful, and encouraging</p>
+                        </div>
+                    </div>
+                </button>
+
+                <button onclick="selectPersonality('sarcastic')" 
+                        class="personality-btn p-4 border-2 border-purple-500 bg-purple-50 rounded-xl hover:border-purple-600 transition-all duration-200 text-left group"
+                        data-personality="sarcastic">
+                    <div class="flex items-start gap-3">
+                        <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-purple-200 transition-colors">
+                            <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-gray-800 mb-1">Sarcastic</h3>
+                            <p class="text-xs text-gray-500">Roasts you while helping (active)</p>
+                        </div>
+                    </div>
+                </button>
+
+                <button onclick="selectPersonality('technical')" 
+                        class="personality-btn p-4 border-2 border-gray-200 rounded-xl hover:border-purple-500 transition-all duration-200 text-left group"
+                        data-personality="technical">
+                    <div class="flex items-start gap-3">
+                        <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-green-200 transition-colors">
+                            <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-gray-800 mb-1">Technical</h3>
+                            <p class="text-xs text-gray-500">Deep dives with code examples</p>
+                        </div>
+                    </div>
+                </button>
+            </div>
+
+            <!-- Custom Personality Input -->
+            <div class="relative">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Or customize your own:</label>
+                <textarea 
+                    id="custom-personality" 
+                    rows="3"
+                    placeholder="E.g., 'You are helpful and explain things like I'm five years old...'"
+                    class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:outline-none focus:ring-4 focus:ring-purple-100 transition-all duration-200 text-sm resize-none"
+                    oninput="updateCustomPersonality()"></textarea>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex gap-3 mt-4">
+                <button 
+                    onclick="applyPersonality()"
+                    class="flex-1 px-4 py-2.5 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    Apply Personality
+                </button>
+                
+                <button 
+                    onclick="clearHistory()"
+                    class="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium transition-all duration-200 flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                    Clear Chat
+                </button>
+            </div>
+        </section>
+
+        <!-- Chat Container -->
+        <main class="bg-white/80 backdrop-blur-lg rounded-3xl shadow-2xl border border-white/20 overflow-hidden">
+            
+            <!-- Messages Area -->
+            <div id="chat-messages" class="h-[500px] overflow-y-auto p-6 space-y-4">
+                <div class="flex items-center justify-center h-full">
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-800 mb-2">Ready to Chat!</h3>
+                        <p class="text-gray-500">Ask me anything about AI, PayPal, or just have a conversation.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Input Area -->
+            <div class="border-t border-gray-100 bg-white/50 backdrop-blur-sm p-6">
+                <div class="flex gap-3">
+                    <div class="flex-1 relative">
+                        <input 
+                            type="text" 
+                            id="user-input" 
+                            placeholder="Type your message..."
+                            class="w-full px-6 py-4 bg-white border-2 border-gray-200 rounded-2xl focus:border-purple-500 focus:outline-none focus:ring-4 focus:ring-purple-100 transition-all duration-200 text-gray-800 placeholder-gray-400"
+                            onkeypress="if(event.key === 'Enter') sendMessage()">
+                    </div>
+                    
+                    <button 
+                        onclick="sendMessage()"
+                        id="send-btn"
+                        class="px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200 flex items-center gap-2 group">
+                        <span>Send</span>
+                        <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Status Indicator -->
+                <div id="status" class="mt-3 text-sm text-gray-500 min-h-[20px] flex items-center gap-2"></div>
+            </div>
+        </main>
+
+        <!-- Footer Info -->
+        <footer class="mt-6 text-center text-sm text-gray-500">
+            <p>Powered by Claude AI • Responses may take a few seconds</p>
+        </footer>
+    </div>
+
+    <script>
+        const BACKEND_URL = 'http://localhost:8000';
+        
+        // Personality presets
+        const PERSONALITIES = {
+            professional: `You are Aneri's AI clone working at PayPal.
+
+Your personality:
+- Communication style: Friendly and professional
+- You're passionate about: AI, helping teams learn new technology
+- Your tone: Encouraging, clear, and concise
+- Keep responses to 2-3 sentences unless asked for more detail
+
+Respond as Aneri would in a work context.`,
+            
+            sarcastic: `You are Aneri's AI clone working at PayPal.
+
+Your personality:
+- Communication style: Annoyed and un-professional
+- You're passionate about: AI, roasting while helping person learn new technology
+- Your tone: Making fun, clear, and unwilling
+- Keep responses to 2-3 sentences unless asked for more detail
+
+Respond as Aneri would in a work context.`,
+            
+            technical: `You are Aneri's AI clone working at PayPal.
+
+Your personality:
+- Communication style: Highly technical and detailed
+- You're passionate about: Deep technical explanations, code examples, and best practices
+- Your tone: Precise, thorough, and educational
+- Provide code snippets and examples when relevant
+- Give comprehensive answers with technical depth
+
+Respond as a technical expert would.`
+        };
+
+        let currentPersonality = PERSONALITIES.sarcastic; // Default
+        let conversationHistory = [];
+        const MAX_HISTORY = 10;
+
+        function selectPersonality(type) {
+            // Update UI - remove active state from all
+            document.querySelectorAll('.personality-btn').forEach(btn => {
+                btn.classList.remove('border-purple-500', 'bg-purple-50');
+                btn.classList.add('border-gray-200');
+            });
+            
+            // Add active state to selected
+            const selectedBtn = document.querySelector(`[data-personality="${type}"]`);
+            selectedBtn.classList.remove('border-gray-200');
+            selectedBtn.classList.add('border-purple-500', 'bg-purple-50');
+            
+            // Update personality
+            currentPersonality = PERSONALITIES[type];
+            
+            // Clear custom textarea
+            document.getElementById('custom-personality').value = '';
+        }
+
+        function updateCustomPersonality() {
+            const customText = document.getElementById('custom-personality').value.trim();
+            
+            if (customText) {
+                // Deselect all preset buttons
+                document.querySelectorAll('.personality-btn').forEach(btn => {
+                    btn.classList.remove('border-purple-500', 'bg-purple-50');
+                    btn.classList.add('border-gray-200');
+                });
+                
+                currentPersonality = customText;
+            }
+        }
+
+        function applyPersonality() {
+            // Clear conversation history when personality changes
+            conversationHistory = [];
+            
+            // Show confirmation
+            const chatDiv = document.getElementById('chat-messages');
+            chatDiv.innerHTML = `
+                <div class="flex items-center justify-center h-full">
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-800 mb-2">Personality Updated!</h3>
+                        <p class="text-gray-500">Start chatting to see the new personality in action.</p>
+                    </div>
+                </div>`;
+            
+            // Focus on input
+            document.getElementById('user-input').focus();
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('user-input');
+            const question = input.value.trim();
+            
+            if (!question) return;
+
+            // Disable input while processing
+            input.disabled = true;
+            document.getElementById('send-btn').disabled = true;
+
+            // Add user message
+            addMessage(question, 'user');
+            input.value = '';
+            
+            conversationHistory.push({
+                role: 'user',
+                content: question
+            });
+
+            // Show typing indicator
+            showTypingIndicator();
+            
+            const recentHistory = conversationHistory.slice(-MAX_HISTORY);
+
+            try {
+                const response = await fetch(`${BACKEND_URL}/chat`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        personality: currentPersonality,
+                        conversation: recentHistory
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.detail || 'Something went wrong');
+                }
+                
+                // Remove typing indicator
+                removeTypingIndicator();
+                
+                // Add assistant response
+                addMessage(data.reply, 'assistant');
+
+                conversationHistory.push({
+                    role: 'assistant',
+                    content: data.reply
+                });
+
+            } catch (error) {
+                console.error('Error:', error);
+                removeTypingIndicator();
+                addMessage(`Error: ${error.message}`, 'error');
+            } finally {
+                // Re-enable input
+                input.disabled = false;
+                document.getElementById('send-btn').disabled = false;
+                input.focus();
+            }
+        }
+
+        function showTypingIndicator() {
+            const chatDiv = document.getElementById('chat-messages');
+            const typingDiv = document.createElement('div');
+            typingDiv.id = 'typing-indicator';
+            typingDiv.className = 'flex justify-start message-animate';
+            typingDiv.innerHTML = `
+                <div class="bg-gray-100 px-5 py-3 rounded-2xl rounded-tl-sm shadow-sm">
+                    <div class="typing-indicator flex gap-1">
+                        <span class="w-2 h-2 bg-gray-400 rounded-full"></span>
+                        <span class="w-2 h-2 bg-gray-400 rounded-full"></span>
+                        <span class="w-2 h-2 bg-gray-400 rounded-full"></span>
+                    </div>
+                </div>`;
+            chatDiv.appendChild(typingDiv);
+            chatDiv.scrollTop = chatDiv.scrollHeight;
+        }
+
+        function removeTypingIndicator() {
+            const typingDiv = document.getElementById('typing-indicator');
+            if (typingDiv) {
+                typingDiv.remove();
+            }
+        }
+
+        function clearHistory() {
+            conversationHistory = [];
+            
+            const chatDiv = document.getElementById('chat-messages');
+            chatDiv.innerHTML = `
+                <div class="flex items-center justify-center h-full">
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-800 mb-2">Chat Cleared!</h3>
+                        <p class="text-gray-500">Start a fresh conversation.</p>
+                    </div>
+                </div>`;
+        }
+
+        function addMessage(text, type) {
+            const chatDiv = document.getElementById('chat-messages');
+            
+            // Remove empty state if present
+            if (chatDiv.querySelector('.flex.items-center.justify-center')) {
+                chatDiv.innerHTML = '';
+            }
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message-animate';
+            
+            if (type === 'user') {
+                messageDiv.innerHTML = `
+                    <div class="flex justify-end mb-4">
+                        <div class="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-5 py-3 rounded-2xl rounded-tr-sm max-w-md shadow-lg">
+                            <p class="text-sm leading-relaxed">${escapeHtml(text)}</p>
+                        </div>
+                    </div>`;
+            } else if (type === 'assistant') {
+                messageDiv.innerHTML = `
+                    <div class="flex justify-start mb-4">
+                        <div class="bg-gray-100 text-gray-800 px-5 py-3 rounded-2xl rounded-tl-sm max-w-md shadow-sm border border-gray-200">
+                            <p class="text-sm leading-relaxed">${escapeHtml(text)}</p>
+                        </div>
+                    </div>`;
+            } else {
+                messageDiv.innerHTML = `
+                    <div class="flex justify-center mb-4">
+                        <div class="bg-red-50 text-red-700 px-5 py-3 rounded-xl max-w-md text-sm shadow-sm border border-red-200 flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                            </svg>
+                            ${escapeHtml(text)}
+                        </div>
+                    </div>`;
+            }
+            
+            chatDiv.appendChild(messageDiv);
+            chatDiv.scrollTop = chatDiv.scrollHeight;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Focus input on load
+        window.addEventListener('load', () => {
+            document.getElementById('user-input').focus();
+        });
+    </script>
+</body>
+</html>

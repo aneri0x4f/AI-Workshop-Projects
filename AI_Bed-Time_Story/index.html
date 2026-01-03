@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>✨ Bedtime Story Generator 🌙</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard SE', 'Comic Neue', cursive, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Animated stars */
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .star {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 3s infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        .container {
+            background: white;
+            border-radius: 30px;
+            padding: 40px;
+            max-width: 700px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            position: relative;
+            z-index: 10;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 {
+            text-align: center;
+            color: #667eea;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #888;
+            font-size: 1.1em;
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            color: #555;
+            font-size: 1.1em;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        input {
+            width: 100%;
+            padding: 15px;
+            border: 3px solid #e0e0e0;
+            border-radius: 15px;
+            font-size: 1em;
+            font-family: inherit;
+            transition: all 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .shuffle-btn {
+            width: 100%;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            font-size: 1.5em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .shuffle-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .shuffle-btn:active {
+            transform: translateY(0);
+        }
+
+        .shuffle-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .story-container {
+            margin-top: 30px;
+            padding: 30px;
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            border-radius: 20px;
+            display: none;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .story-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .story-header h2 {
+            color: #764ba2;
+            font-size: 1.8em;
+            margin-bottom: 5px;
+        }
+
+        .story-meta {
+            color: #666;
+            font-size: 1em;
+            font-style: italic;
+        }
+
+        .story-text {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            line-height: 1.8;
+            font-size: 1.1em;
+            color: #333;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            white-space: pre-wrap;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            display: none;
+        }
+
+        .loading-spinner {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: #667eea;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .moon {
+            position: fixed;
+            top: 50px;
+            right: 50px;
+            width: 80px;
+            height: 80px;
+            background: #ffd700;
+            border-radius: 50%;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+            z-index: 5;
+        }
+
+        .cloud {
+            position: fixed;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 100px;
+            z-index: 2;
+            animation: float 20s infinite linear;
+        }
+
+        .cloud1 {
+            width: 100px;
+            height: 40px;
+            top: 20%;
+            left: -100px;
+        }
+
+        .cloud2 {
+            width: 150px;
+            height: 50px;
+            top: 60%;
+            left: -150px;
+            animation-delay: 10s;
+        }
+
+        @keyframes float {
+            from { transform: translateX(0); }
+            to { transform: translateX(calc(100vw + 200px)); }
+        }
+
+        .error {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Decorative elements -->
+    <div class="stars" id="stars"></div>
+    <div class="moon"></div>
+    <div class="cloud cloud1"></div>
+    <div class="cloud cloud2"></div>
+
+    <div class="container">
+        <h1>✨ Magical Bedtime Stories 🌙</h1>
+        <p class="subtitle">Create a unique story every night!</p>
+
+        <div class="input-group">
+            <label for="childName">Child's Name:</label>
+            <input type="text" id="childName" placeholder="Enter your child's name" value="Sweetie">
+        </div>
+
+        <div class="input-group">
+            <label for="childAge">Age:</label>
+            <input type="number" id="childAge" placeholder="Age" value="5" min="2" max="12">
+        </div>
+
+        <button class="shuffle-btn" id="shuffleBtn" onclick="generateStory()">
+            🎲 Generate Magical Story! ✨
+        </button>
+
+        <div class="loading" id="loading">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Creating your magical story...</div>
+        </div>
+
+        <div class="error" id="error"></div>
+
+        <div class="story-container" id="storyContainer">
+            <div class="story-header">
+                <h2 id="storyTitle">Your Story</h2>
+                <p class="story-meta" id="storyMeta"></p>
+            </div>
+            <div class="story-text" id="storyText"></div>
+        </div>
+    </div>
+
+    <script>
+        // Create animated stars
+        const starsContainer = document.getElementById('stars');
+        for (let i = 0; i < 100; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            star.style.left = Math.random() * 100 + '%';
+            star.style.top = Math.random() * 100 + '%';
+            star.style.animationDelay = Math.random() * 3 + 's';
+            starsContainer.appendChild(star);
+        }
+
+        async function generateStory() {
+            const childName = document.getElementById('childName').value || 'little one';
+            const childAge = parseInt(document.getElementById('childAge').value) || 5;
+            
+            const shuffleBtn = document.getElementById('shuffleBtn');
+            const loading = document.getElementById('loading');
+            const storyContainer = document.getElementById('storyContainer');
+            const errorDiv = document.getElementById('error');
+            
+            // Reset UI
+            shuffleBtn.disabled = true;
+            loading.style.display = 'block';
+            storyContainer.style.display = 'none';
+            errorDiv.style.display = 'none';
+            
+            try {
+                const response = await fetch('http://localhost:8000/generate-story', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        child_name: childName,
+                        age: childAge
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to generate story');
+                }
+                
+                const data = await response.json();
+                
+                // Display the story
+                document.getElementById('storyTitle').textContent = `${childName}'s Adventure`;
+                document.getElementById('storyMeta').textContent = 
+                    `Theme: ${data.theme} • Character: ${data.character}`;
+                document.getElementById('storyText').textContent = data.story;
+                
+                // Show story with animation
+                loading.style.display = 'none';
+                storyContainer.style.display = 'block';
+                
+            } catch (error) {
+                console.error('Error:', error);
+                loading.style.display = 'none';
+                errorDiv.textContent = '😔 Oops! Something went wrong. Please try again.';
+                errorDiv.style.display = 'block';
+            } finally {
+                shuffleBtn.disabled = false;
+            }
+        }
+
+        // Allow Enter key to generate story
+        document.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                generateStory();
+            }
+        });
+    </script>
+</body>
+</html>

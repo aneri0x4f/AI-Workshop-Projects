@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSV Interactive Analyzer</title>
+    
+    <!-- Plotly.js for interactive graphs -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .upload-section {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border: 2px dashed #dee2e6;
+        }
+
+        .file-input-wrapper {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        input[type="file"] {
+            padding: 10px;
+            border: 2px solid #dee2e6;
+            border-radius: 5px;
+            background: white;
+            cursor: pointer;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        button {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            display: none;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .results {
+            display: none;
+        }
+
+        .analysis-box {
+            background: #e7f3ff;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border-left: 5px solid #667eea;
+        }
+
+        .analysis-box h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.8em;
+        }
+
+        .analysis-text {
+            color: #555;
+            line-height: 1.8;
+            white-space: pre-wrap;
+        }
+
+        .graph-container {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .graph-container h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.5em;
+        }
+
+        .graph-description {
+            color: #666;
+            margin-bottom: 20px;
+            font-style: italic;
+        }
+
+        .graph-plot {
+            min-height: 400px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 5px solid #c33;
+            display: none;
+        }
+
+        .data-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .data-info h3 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .data-info p {
+            color: #666;
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 CSV Interactive Analyzer</h1>
+        <p class="subtitle">Upload your CSV file and get AI-powered analysis with interactive visualizations</p>
+
+        <!-- Upload Section -->
+        <div class="upload-section">
+            <div class="file-input-wrapper">
+                <input type="file" id="csvFile" accept=".csv" />
+                <button onclick="analyzeCSV()" id="analyzeBtn">
+                    🚀 Analyze CSV
+                </button>
+            </div>
+        </div>
+
+        <!-- Loading Indicator -->
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Analyzing your data... This may take 10-30 seconds</p>
+        </div>
+
+        <!-- Error Message -->
+        <div class="error" id="error"></div>
+
+        <!-- Results Section -->
+        <div class="results" id="results">
+            <!-- Data Info -->
+            <div class="data-info" id="dataInfo"></div>
+
+            <!-- Analysis -->
+            <div class="analysis-box">
+                <h2>🔍 AI Analysis</h2>
+                <div class="analysis-text" id="analysisText"></div>
+            </div>
+
+            <!-- Interactive Graphs -->
+            <div id="graphsContainer"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8000/api/analyze-interactive';
+
+        async function analyzeCSV() {
+            const fileInput = document.getElementById('csvFile');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                showError('Please select a CSV file first!');
+                return;
+            }
+
+            // Show loading, hide results and errors
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('error').style.display = 'none';
+            document.getElementById('analyzeBtn').disabled = true;
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Server error: ${response.status}`);
+                }
+
+                const data = await response.json();
+                displayResults(data);
+
+            } catch (error) {
+                showError(`Error: ${error.message}`);
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('analyzeBtn').disabled = false;
+            }
+        }
+
+        function displayResults(data) {
+            // Show results section
+            document.getElementById('results').style.display = 'block';
+
+            // Display data info
+            const dataInfo = document.getElementById('dataInfo');
+            dataInfo.innerHTML = `
+                <h3>📁 File Information</h3>
+                <p><strong>Filename:</strong> ${data.filename}</p>
+                <p><strong>Rows:</strong> ${data.data_summary.shape[0]} | <strong>Columns:</strong> ${data.data_summary.shape[1]}</p>
+                <p><strong>Columns:</strong> ${data.data_summary.columns.join(', ')}</p>
+            `;
+
+            // Display analysis text
+            document.getElementById('analysisText').textContent = data.analysis || 'No analysis available';
+
+            // Display interactive graphs
+            const graphsContainer = document.getElementById('graphsContainer');
+            graphsContainer.innerHTML = '';
+
+            if (data.interactive_graphs && data.interactive_graphs.length > 0) {
+                data.interactive_graphs.forEach((graph, index) => {
+                    const graphDiv = document.createElement('div');
+                    graphDiv.className = 'graph-container';
+                    graphDiv.innerHTML = `
+                        <h3>${graph.title || `Graph ${index + 1}`}</h3>
+                        <p class="graph-description">${graph.description || ''}</p>
+                        <div class="graph-plot" id="graph-${index}"></div>
+                    `;
+                    graphsContainer.appendChild(graphDiv);
+
+                    // Render the graph HTML if provided
+                    if (graph.html) {
+                        renderGraphFromHTML(graph.html, `graph-${index}`);
+                    }
+                });
+            } else {
+                graphsContainer.innerHTML = '<p>No graphs generated. Try uploading a different CSV file.</p>';
+            }
+        }
+
+        function renderGraphFromHTML(html, containerId) {
+            // Create a temporary container to parse HTML
+            const temp = document.createElement('div');
+            temp.innerHTML = html;
+
+            // Extract and execute scripts
+            const scripts = temp.getElementsByTagName('script');
+            const container = document.getElementById(containerId);
+
+            // Copy non-script content
+            const nonScriptContent = temp.cloneNode(true);
+            Array.from(nonScriptContent.getElementsByTagName('script')).forEach(s => s.remove());
+            container.innerHTML = nonScriptContent.innerHTML;
+
+            // Execute scripts
+            Array.from(scripts).forEach(script => {
+                const newScript = document.createElement('script');
+                if (script.src) {
+                    newScript.src = script.src;
+                } else {
+                    // Replace placeholder div id with actual container id
+                    let scriptText = script.textContent;
+                    scriptText = scriptText.replace(/['"]graph\d+['"]/g, `'${containerId}'`);
+                    newScript.textContent = scriptText;
+                }
+                document.body.appendChild(newScript);
+            });
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        // Allow file selection by clicking the button
+        document.getElementById('csvFile').addEventListener('change', function() {
+            if (this.files.length > 0) {
+                console.log('File selected:', this.files[0].name);
+            }
+        });
+    </script>
+</body>
+</html>
