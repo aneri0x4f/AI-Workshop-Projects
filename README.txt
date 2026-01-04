@@ -19,7 +19,7 @@ Base URL for Groq: "https://api.groq.com/openai/v1/chat/completions"
 STEP 2: SETUP INSTRUCTIONS
 ========================================================================================
 
-1. Unzip the AI_Workshop folder
+1. Clone the AI_Workshop project
 
 2. Open VS Code (or any code editor) and navigate to the main "AI_Workshop" folder
 
@@ -61,6 +61,8 @@ TROUBLESHOOTING
 
 COMMON ISSUES:
 
+Make sure the error is not because of the OS you are using. Mac vs Windows.
+
 1. Module/Package errors:
    - Make sure you're in the AI_Workshop main folder when running pip install
    - Try: pip install -r requirements.txt --upgrade
@@ -92,10 +94,5 @@ YOUR HOMEWORK
 ✓ Customize and make projects your own
 ✓ HAVE FUN!
 
-========================================================================================
-QUESTIONS?
-========================================================================================
-
-Post in the team Slack channel or join office hrs, learn together!
 
 Happy coding! 🚀
